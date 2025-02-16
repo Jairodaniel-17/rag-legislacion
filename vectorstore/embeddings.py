@@ -3,12 +3,13 @@ import warnings
 
 from dotenv import load_dotenv
 from langchain_community.embeddings import OllamaEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 
 load_dotenv()
 warnings.filterwarnings("ignore")
 
 MODEL_EMBEDDINGS = os.getenv("MODEL_EMBEDDINGS")
-
+FLAG_EMBEDDINGS_OLLAMA = int(os.getenv("FLAG_EMBEDDINGS_OLLAMA"))
 
 class EmbeddingManager:
     """Embedding Manager class to manage embeddings."""
@@ -27,8 +28,14 @@ class EmbeddingManager:
         if self.__initialized:
             return
         self.__initialized = True
-        self.__embeddings = OllamaEmbeddings(model=MODEL_EMBEDDINGS)
-
+        if FLAG_EMBEDDINGS_OLLAMA == 1:
+            self.__embeddings = OllamaEmbeddings(model=MODEL_EMBEDDINGS)
+        else:
+            self.__embeddings = HuggingFaceEmbeddings(
+            model_name=MODEL_EMBEDDINGS,
+            encode_kwargs={"normalize_embeddings": True},
+            model_kwargs={"device": "cuda"},
+        )
     @classmethod
     def get_embeddings(cls):
         """Get the embeddings."""

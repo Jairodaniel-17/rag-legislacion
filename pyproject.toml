@@ -21,6 +21,7 @@ dependencies = [
     "langchain>=0.3.18",
     "langchain-community>=0.3.17",
     "langchain-core>=0.3.35",
+    "langchain-huggingface>=0.1.2",
     "langchain-ollama>=0.2.3",
     "langchain-openai>=0.3.6",
     "loguru>=0.7.3",
