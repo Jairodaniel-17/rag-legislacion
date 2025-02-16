@@ -4,7 +4,9 @@ version = "0.1.0"
 description = "Sistema de Recuperación y Generación Aumentada (RAG) para documentos legislativos. Permite procesar, indexar y consultar documentación legal utilizando modelos de lenguaje y búsqueda semántica."
 readme = "README.md"
 requires-python = ">=3.11"
-authors = [{ name = "Tu Nombre", email = "tu.email@ejemplo.com" }]
+authors = [
+    { name = "Jairo Daniel Mendoza Torres", email = "jairodaniel.mt@gmail.com" },
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Legal Industry",

@@ -16,6 +16,16 @@ Sistema de Recuperación Aumentada por Generación (RAG) para documentos legisla
 - Ollama instalado localmente (para embeddings)
 - Acceso a API de OpenAI o compatible (para LLM)
 
+### Opcional (para desarrollo)
+
+```bash
+# Ollama con un LLM es compatible con la API de OpenAI 
+LLM_MODEL_NAME="llama3.2:latest"
+LLM_API_KEY="ollama"
+LLM_BASE_URL="http://localhost:11434/v1"
+LLM_TEMPERATURE=0.3
+```
+
 ## Instalación
 
 1. Clonar el repositorio
@@ -46,7 +56,7 @@ LLM_BASE_URL=https://api.openai.com/v1  # O la URL de tu proveedor compatible
 ## Estructura del Proyecto
 
 ```plainttext
-.
+|
 ├── database/            # Almacenamiento de bases de datos vectoriales
 ├── derecho_files/       # Archivos de legislación
 ├── documentation/       # Documentación del proyecto

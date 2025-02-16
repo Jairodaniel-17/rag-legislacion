@@ -1,10 +1,12 @@
 import os
+
 from langchain_community.document_loaders import (
+    DirectoryLoader,
+    Docx2txtLoader,
     PyMuPDFLoader,
     TextLoader,
-    Docx2txtLoader,
-    DirectoryLoader,
 )
+
 
 class DocumentProcessor:
     def __init__(self, path: str):

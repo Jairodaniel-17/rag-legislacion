@@ -1,13 +1,13 @@
 import os
-from typing import Optional, List
 import shutil
+from typing import List, Optional
 from zipfile import ZipFile
-from langchain_community.vectorstores import FAISS
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-# from langchain_core.embeddings import Embeddings
-from vectorstore.embeddings import EmbeddingManager
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.vectorstores import FAISS
+
 from vectorstore.document_processor import DocumentProcessor
+from vectorstore.embeddings import EmbeddingManager
 
 
 class VectorStoreManager:
@@ -23,17 +23,18 @@ class VectorStoreManager:
     - load_vectorstore() -> FAISS: Carga el vectorstore desde el almacenamiento local.
     - add_files_vectorstore() -> Optional[FAISS]: Añade nuevos documentos al vectorstore y lo guarda localmente.
     - download_vectorstore() -> str: Genera un archivo zip del vectorstore y devuelve la ruta del archivo.
-    """
+    """  # noqa: E501
 
     def __init__(self, path: str, name: str):
         """
-        Descripción: Clase para gestionar el vectorstore, incluyendo la creación, eliminación y búsqueda de
-        documentos similares.
+        Descripción: Clase para gestionar el vectorstore, incluyendo la creación,
+        eliminación y búsqueda de documentos similares.
 
         Parámetros:
-        - path: str - ruta del directorio que contiene los documentos (usualmente es "database" que es el directorio
-        donde se almacenan las bases de datos).
-        - name: str - nombre que será el identificador del vectorstore, se usa para guardar y cargar el vectorstore.
+        - path: str - ruta del directorio que contiene los documentos (usualmente es
+        "database" que es el directorio donde se almacenan las bases de datos).
+        - name: str - nombre que será el identificador del vectorstore, se
+        usa para guardar y cargar el vectorstore.
         """
         self.path = path
         self.name = name
@@ -63,7 +64,8 @@ class VectorStoreManager:
     def search_similarity(self, query: str, fuente: Optional[str] = None) -> str:
         """
         Modo de uso:
-        debe ingresar la query y la fuente (opcional) para buscar documentos similares en el vectorstore.
+        debe ingresar la query y la fuente (opcional) para buscar documentos
+        similares en el vectorstore.
 
         Nota: debe estar definido el vectorstore para poder realizar la búsqueda.
 
@@ -144,7 +146,6 @@ class VectorStoreManager:
             allow_dangerous_deserialization=True,
         )
 
-    # funcion para añadir una list[str] que contenga las rutas de los archivos a añadir al vectorstore
     def add_list_files_vectorstore(self, path_files: str) -> bool:
         if not os.path.exists(path_files):
             return False
@@ -182,9 +183,8 @@ class VectorStoreManager:
         return self.vectorstore
 
     def download_vectorstore(self):
-        # generar un zip de la carpeta del vectorstore, crearlo en la carpeta temp y devolver la ruta
         with ZipFile("temp/vectorstore.zip", "w") as zip:
-            for root, dirs, files in os.walk(f"database/{self.name}"):
+            for root, _dirs, files in os.walk(f"database/{self.name}"):
                 for file in files:
                     zip.write(os.path.join(root, file))
         return "temp/vectorstore.zip"

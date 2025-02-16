@@ -1,12 +1,14 @@
 import os
 import shutil
 from typing import List
+
+from loguru import logger
+from rich.console import Console
+from rich.progress import Progress
+from rich.table import Table
+
 from llm.llm_manager import LLMManager
 from vectorstore.vectorstore_manager import VectorStoreManager
-from rich.console import Console
-from rich.table import Table
-from rich.progress import Progress
-from loguru import logger
 
 logger.add("warnings.log", level="WARNING", format="{time} - {level} - {message}")
 console = Console()
@@ -61,14 +63,14 @@ def main() -> None:
         console.print("[bold green]Hello from rag-legislacion![/bold green]")
         if not vectorstore.exist_vectorstore():
             console.print(
-                f"[bold yellow]No se encontró el vectorstore '{name_vectorstore}'.[/bold yellow]"
+                f"[bold yellow]No se encontró el vectorstore '{name_vectorstore}'.[/bold yellow]"  # noqa: E501
             )
             console.print(
                 f"Se procede a crear el vectorstore con los archivos en '{path}'."
             )
             vectorstore.create_vectorstore()
             console.print(
-                f"[bold green]Vectorstore '{name_vectorstore}' creado correctamente.[/bold green]"
+                f"[bold green]Vectorstore '{name_vectorstore}' creado correctamente.[/bold green]"  # noqa: E501
             )
         else:
             break
@@ -98,6 +100,6 @@ def main() -> None:
 if __name__ == "__main__":
     if not os.path.exists(path):
         console.print(f"[bold yellow]Carpeta '{path}' no encontrada.[/bold yellow]")
-        console.print(f"Coloque archivos en '{path}' [bold yellow](*.pdf, *.txt, *.docx, max 100MB)[/bold yellow]")
+        console.print(f"Coloque archivos en '{path}' [bold yellow](*.pdf, *.txt, *.docx, max 100MB)[/bold yellow]")  # noqa: E501
         os._exit(0)
     main()

@@ -1,14 +1,15 @@
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-from dotenv import load_dotenv
 import os
+
+from dotenv import load_dotenv
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
 
 PROMPT_TEMPLATE = ChatPromptTemplate(
     [
         ("system", "Answer the user's question, using the context provided."),
         (
             "user",
-            "User query: '{user question}' context to answer user question: '{context}'",
+            "User query: '{user question}' context to answer user question: '{context}'",  # noqa: E501
         ),
     ]
 )
