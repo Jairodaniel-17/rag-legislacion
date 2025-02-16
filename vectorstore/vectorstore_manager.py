@@ -16,7 +16,7 @@ class VectorStoreManager:
     Esta clase maneja la creación, eliminación y búsqueda de documentos similares.
 
     Métodos:
-    - __init__(path: str, name: str, embeddings: Embeddings):
+    - __init__(path: str, name: str):
         Inicializa la clase con la ruta del directorio, el nombre del vectorstore
         y el modelo de embeddings.
     - create_vectorstore() -> bool:
