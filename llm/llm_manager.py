@@ -16,8 +16,10 @@ PROMPT_TEMPLATE = ChatPromptTemplate(
 
 
 class LLMManager:
+    """LLM Manager class to generate responses using the LLM model."""
+
     def __init__(self):
-        # Load environment variables
+        """LLM Manager class to generate responses using the LLM model."""
         load_dotenv()
 
         # Initialize ChatOpenAI
@@ -29,9 +31,7 @@ class LLMManager:
         )
 
     def generate_response(self, prompt: str) -> str:
-        """
-        Generate a response using the LLM
-        """
+        """Generate a response using the LLM."""
         try:
             response = self.llm.invoke(prompt)
             return response.content
@@ -39,9 +39,7 @@ class LLMManager:
             return f"Error generating response: {str(e)}"
 
     def generate_response_with_context(self, prompt: str, context: str) -> str:
-        """
-        Generate a response using the LLM with context
-        """
+        """Generate a response using the LLM with context."""
         try:
             prompt = PROMPT_TEMPLATE.invoke(
                 {"user question": prompt, "context": context}
@@ -53,6 +51,7 @@ class LLMManager:
 
 
 def test_llm_manager():
+    """Test the LLMManager class."""
     llm_manager = LLMManager()
     while True:
         prompt = input("Enter a prompt: ")

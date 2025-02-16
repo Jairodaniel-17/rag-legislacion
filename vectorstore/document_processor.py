@@ -9,10 +9,14 @@ from langchain_community.document_loaders import (
 
 
 class DocumentProcessor:
+    """Document Processor class to process files in a directory."""
+
     def __init__(self, path: str):
+        """Document Processor class to process files in a directory."""
         self.path = path
 
     def files_to_texts(self) -> list:
+        """Convert files in a directory to text."""
         loaders_config = {
             "*.pdf": PyMuPDFLoader,
             "*.txt": (TextLoader, {"encoding": "utf-8"}),

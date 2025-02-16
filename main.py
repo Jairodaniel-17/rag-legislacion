@@ -20,6 +20,7 @@ llm_manager = LLMManager()
 
 
 def interact_with_vectorstore(files_to_add: List[str], add_files: bool) -> None:
+    """Interact with the vectorstore."""
     if add_files:
         with Progress() as progress:
             task = progress.add_task(
@@ -58,6 +59,18 @@ def interact_with_vectorstore(files_to_add: List[str], add_files: bool) -> None:
 
 
 def main() -> None:
+    """Initialize and manage vector store operations.
+
+    Initialize and manage a vector store for legal documents. It performs the
+    following operations:
+    1. Checks if vector store exists, creates it if not
+    2. Compares existing files in the path with those in vector store
+    3. Creates a table showing status of each file
+    4. Initiates interaction with vector store for any new files
+
+    The function runs in a loop until the vector store is properly initialized, 
+    then processes any new files found in the specified path.
+    """
     while True:
         os.system("cls")
         console.print("[bold green]Hello from rag-legislacion![/bold green]")

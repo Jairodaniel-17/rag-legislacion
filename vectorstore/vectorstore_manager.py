@@ -11,23 +11,40 @@ from vectorstore.embeddings import EmbeddingManager
 
 
 class VectorStoreManager:
-    """Clase para gestionar el vectorstore, incluyendo la creación, eliminación y búsqueda de documentos similares.
+    """Clase para gestionar el vectorstore.
+
+    Esta clase maneja la creación, eliminación y búsqueda de documentos similares.
+
     Métodos:
-    - __init__(path: str, name: str, embeddings: Embeddings): Inicializa la clase con la ruta del directorio, el nombre del vectorstore y el modelo de embeddings.
-    - create_vectorstore() -> bool: Crea un vectorstore a partir de los documentos en la ruta especificada y lo guarda localmente.
-    - delete_vectorstore() -> bool: Elimina el vectorstore especificado.
-    - search_similarity(query: str, fuente: Optional[str] = None) -> str: Busca documentos similares en el vectorstore basado en una query y una fuente opcional.
-    - list_sources() -> List[str]: Lista todas las fuentes de los documentos en el vectorstore.
-    - extract_texts_by_source(source: str) -> List[str]: Extrae los textos de los documentos que pertenecen a una fuente específica.
-    - save_text_to_file_temp(source: str) -> bool: Guarda los textos de una fuente específica en un archivo temporal.
-    - load_vectorstore() -> FAISS: Carga el vectorstore desde el almacenamiento local.
-    - add_files_vectorstore() -> Optional[FAISS]: Añade nuevos documentos al vectorstore y lo guarda localmente.
-    - download_vectorstore() -> str: Genera un archivo zip del vectorstore y devuelve la ruta del archivo.
-    """  # noqa: E501
+    - __init__(path: str, name: str, embeddings: Embeddings):
+        Inicializa la clase con la ruta del directorio, el nombre del vectorstore
+        y el modelo de embeddings.
+    - create_vectorstore() -> bool:
+        Crea un vectorstore a partir de los documentos en la ruta especificada
+        y lo guarda localmente.
+    - delete_vectorstore() -> bool:
+        Elimina el vectorstore especificado.
+    - search_similarity(query: str, fuente: Optional[str] = None) -> str:
+        Busca documentos similares en el vectorstore basado en una query
+        y una fuente opcional.
+    - list_sources() -> List[str]:
+        Lista todas las fuentes de los documentos en el vectorstore.
+    - extract_texts_by_source(source: str) -> List[str]:
+        Extrae los textos de los documentos que pertenecen a una fuente específica.
+    - save_text_to_file_temp(source: str) -> bool:
+        Guarda los textos de una fuente específica en un archivo temporal.
+    - load_vectorstore() -> FAISS:
+        Carga el vectorstore desde el almacenamiento local.
+    - add_files_vectorstore() -> Optional[FAISS]:
+        Añade nuevos documentos al vectorstore y lo guarda localmente.
+    - download_vectorstore() -> str:
+        Genera un archivo zip del vectorstore y devuelve la ruta del archivo.
+    """
 
     def __init__(self, path: str, name: str):
-        """
-        Descripción: Clase para gestionar el vectorstore, incluyendo la creación,
+        """Inicializa el gestor del vectorstore.
+
+        Clase para gestionar el vectorstore, incluyendo la creación,
         eliminación y búsqueda de documentos similares.
 
         Parámetros:
@@ -42,6 +59,16 @@ class VectorStoreManager:
         self.vectorstore = None
 
     def create_vectorstore(self) -> bool:
+        """Create and save a vector store from documents in the specified path.
+
+        The process includes:
+        - Converting files to text documents
+        - Splitting texts into chunks with overlap
+        - Creating FAISS vector store with embeddings
+        - Saving vector store to local database directory
+
+        Retorna True si el vectorstore fue creado y guardado exitosamente.
+        """
         documents = DocumentProcessor(self.path).files_to_texts()
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000, chunk_overlap=200, length_function=len
@@ -55,6 +82,7 @@ class VectorStoreManager:
         return True
 
     def delete_vectorstore(self) -> bool:
+        """Delete the specified vector store."""
         try:
             shutil.rmtree(f"database/{self.name}")
         except FileNotFoundError:
@@ -62,7 +90,8 @@ class VectorStoreManager:
         return True
 
     def search_similarity(self, query: str, fuente: Optional[str] = None) -> str:
-        """
+        """Busqueda de similitd en documentos del vectorstore basado en la query.
+
         Modo de uso:
         debe ingresar la query y la fuente (opcional) para buscar documentos
         similares en el vectorstore.
@@ -71,7 +100,7 @@ class VectorStoreManager:
 
         Parámetros:
         query: str - texto de la query.
-        fuente: str - fuente de los documentos a buscar.
+        fuente: str - fuente de los documentos a buscar, pero es opcional.
 
         Retorna:
         str - documentos similares.
@@ -97,6 +126,7 @@ class VectorStoreManager:
         return str(busqueda)
 
     def list_sources(self) -> List[str]:
+        """List all sources of the documents in the vectorstore."""
         if not self.vectorstore:
             self.vectorstore = self.load_vectorstore()
 
@@ -109,6 +139,7 @@ class VectorStoreManager:
         return list(set(source_metadata.values()))
 
     def extract_texts_by_source(self, source: str) -> List[str]:
+        """Extract texts of documents that belong to a specific source."""
         if not self.vectorstore:
             self.vectorstore = self.load_vectorstore()
 
@@ -121,6 +152,7 @@ class VectorStoreManager:
         return texts
 
     def save_text_to_file_temp(self, source: str) -> bool:
+        """Save texts of a specific source to a temporary file."""
         texts = self.extract_texts_by_source(source)
         carpeta = "temp"
         target_source_safe = source.replace("\\", "_").replace("/", "_")
@@ -140,6 +172,7 @@ class VectorStoreManager:
             return False
 
     def load_vectorstore(self) -> FAISS:
+        """Load the vectorstore from local storage."""
         return FAISS.load_local(
             folder_path=os.path.join("database", self.name),
             embeddings=self.embeddings,
@@ -147,6 +180,7 @@ class VectorStoreManager:
         )
 
     def add_list_files_vectorstore(self, path_files: str) -> bool:
+        """Add files to the vectorstore and save it locally."""
         if not os.path.exists(path_files):
             return False
 
@@ -164,6 +198,7 @@ class VectorStoreManager:
         return True
 
     def add_files_vectorstore(self) -> Optional[FAISS]:
+        """Add new documents to the vectorstore and save it locally."""
         temp_folder = "docs"
         if not os.path.exists(temp_folder):
             os.makedirs(temp_folder)
@@ -183,6 +218,7 @@ class VectorStoreManager:
         return self.vectorstore
 
     def download_vectorstore(self):
+        """Generate a zip file of the vectorstore and return the file path."""
         with ZipFile("temp/vectorstore.zip", "w") as zip:
             for root, _dirs, files in os.walk(f"database/{self.name}"):
                 for file in files:
@@ -190,4 +226,5 @@ class VectorStoreManager:
         return "temp/vectorstore.zip"
 
     def exist_vectorstore(self) -> bool:
+        """Check if the vectorstore exists in the local storage."""
         return os.path.exists(f"database/{self.name}")

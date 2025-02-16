@@ -4,9 +4,7 @@ version = "0.1.0"
 description = "Sistema de Recuperación y Generación Aumentada (RAG) para documentos legislativos. Permite procesar, indexar y consultar documentación legal utilizando modelos de lenguaje y búsqueda semántica."
 readme = "README.md"
 requires-python = ">=3.11"
-authors = [
-    { name = "Jairo Daniel Mendoza Torres", email = "jairodaniel.mt@gmail.com" },
-]
+authors = [{ name = "Tu Nombre", email = "tu.email@ejemplo.com" }]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Legal Industry",
@@ -32,28 +30,22 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=8.3.4",
-    "black>=25.1.0",
-    "isort>=6.0.0",
-    "mypy>=1.0",
-    "ruff>=0.1.0",
-]
-
-[tool.black]
-line-length = 88
-target-version = ["py311"]
-
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-
-[tool.mypy]
-python_version = "3.11"
-strict = true
-ignore_missing_imports = true
+dev = ["pytest>=7.0", "ruff>=0.1.0"]
 
 [tool.ruff]
+# Reglas de linting: 
+# E: errores de pycodestyle
+# F: pyflakes (errores lógicos)
+# B: flake8-bugbear (bugs potenciales)
+# I: isort (ordenamiento de imports)
+# D: pydocstring (documentación)
+select = ["E", "F", "B", "I", "D"]
+ignore = ["D100", "D104"]          # Ignorar docstrings faltantes en módulos y paquetes
+
+# Configuración de formateo
 line-length = 88
 target-version = "py311"
-select = ["E", "F", "B", "I"]
+
+# Ordenamiento de imports
+[tool.ruff.isort]
+known-first-party = ["llm", "vectorstore"]
