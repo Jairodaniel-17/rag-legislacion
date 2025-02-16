@@ -1,5 +1,6 @@
 import os
 import shutil
+import time
 from typing import List
 
 from loguru import logger
@@ -52,7 +53,15 @@ def interact_with_vectorstore(files_to_add: List[str], add_files: bool) -> None:
         try:
             context = vectorstore.search_similarity(query=query)
             respuesta_llm = llm_manager.generate_response_with_context(query, context)
-            console.print(f"[bold green]Respuesta:[/bold green] {respuesta_llm}\n")
+            console.print("[bold purple]Respuesta:[/bold purple]\n")
+            # Simular respuesta en vivo con velocidad constante de 5 caracteres/segundo
+            respuesta = respuesta_llm
+            chars_per_second = 128
+            sleep_time = 1 / chars_per_second
+            for char in respuesta:
+                console.print(char, end="", style="bold green")
+                time.sleep(sleep_time)
+            console.print("\n")
         except Exception as e:
             logger.error(f"Error al realizar la consulta: {e}")
             console.print(f"[bold red]Error:[/bold red] {str(e)}")
@@ -68,7 +77,7 @@ def main() -> None:
     3. Creates a table showing status of each file
     4. Initiates interaction with vector store for any new files
 
-    The function runs in a loop until the vector store is properly initialized, 
+    The function runs in a loop until the vector store is properly initialized,
     then processes any new files found in the specified path.
     """
     while True:
@@ -113,6 +122,8 @@ def main() -> None:
 if __name__ == "__main__":
     if not os.path.exists(path):
         console.print(f"[bold yellow]Carpeta '{path}' no encontrada.[/bold yellow]")
-        console.print(f"Coloque archivos en '{path}' [bold yellow](*.pdf, *.txt, *.docx, max 100MB)[/bold yellow]")  # noqa: E501
+        console.print(
+            f"Coloque archivos en '{path}' [bold yellow](*.pdf, *.txt, *.docx, max 100MB)[/bold yellow]"  # noqa: E501
+        )  # noqa: E501
         os._exit(0)
     main()

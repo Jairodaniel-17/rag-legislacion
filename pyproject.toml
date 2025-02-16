@@ -45,7 +45,7 @@ select = ["E", "F", "B", "I", "D"]
 ignore = ["D100", "D104"]          # Ignorar docstrings faltantes en módulos y paquetes
 
 # Configuración de formateo
-line-length = 88
+line-length = 90
 target-version = "py311"
 
 # Ordenamiento de imports
