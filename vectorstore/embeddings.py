@@ -1,6 +1,7 @@
 import os
 import warnings
 
+import torch
 from dotenv import load_dotenv
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -9,7 +10,8 @@ load_dotenv()
 warnings.filterwarnings("ignore")
 
 MODEL_EMBEDDINGS = os.getenv("MODEL_EMBEDDINGS")
-FLAG_EMBEDDINGS_OLLAMA = int(os.getenv("FLAG_EMBEDDINGS_OLLAMA"))
+FLAG_EMBEDDINGS = int(os.getenv("FLAG_EMBEDDINGS"))
+
 
 class EmbeddingManager:
     """Embedding Manager class to manage embeddings."""
@@ -28,14 +30,15 @@ class EmbeddingManager:
         if self.__initialized:
             return
         self.__initialized = True
-        if FLAG_EMBEDDINGS_OLLAMA == 1:
+        if FLAG_EMBEDDINGS == 1:
             self.__embeddings = OllamaEmbeddings(model=MODEL_EMBEDDINGS)
         else:
             self.__embeddings = HuggingFaceEmbeddings(
-            model_name=MODEL_EMBEDDINGS,
-            encode_kwargs={"normalize_embeddings": True},
-            model_kwargs={"device": "cuda"},
-        )
+                model_name=MODEL_EMBEDDINGS,
+                encode_kwargs={"normalize_embeddings": True},
+                model_kwargs={"device": "cuda" if torch.cuda.is_available() else "cpu"},
+            )
+
     @classmethod
     def get_embeddings(cls):
         """Get the embeddings."""
