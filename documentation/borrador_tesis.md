@@ -1,6 +1,6 @@
 # **Sistema RAG para Consulta de Normativas Peruanas: Un Paradigma de IA Ética y Acceso Democrático al Derecho**
 
-## **1. Introducción  
+## **1. Introducción**
 
 ### **1.1. Contexto Legal Peruano: Datos Críticos**  
 
