@@ -68,7 +68,7 @@ LLM_BASE_URL=https://api.openai.com/v1  # O la URL de tu proveedor compatible
 │   ├── document_processor.py  # Procesamiento de documentos
 │   ├── embeddings.py         # Gestión de embeddings
 │   └── vectorstore_manager.py # Gestión de la base de datos vectorial
-└── hello.py            # Script principal
+└── main.py            # Script principal
 ```
 
 Para una documentación más detallada, consulta los siguientes recursos:
