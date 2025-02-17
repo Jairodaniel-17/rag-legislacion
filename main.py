@@ -14,8 +14,9 @@ from vectorstore.vectorstore_manager import VectorStoreManager
 logger.add("warnings.log", level="WARNING", format="{time} - {level} - {message}")
 console = Console()
 
+
 path = "derecho_files"
-name_vectorstore = "legislacion"
+name_vectorstore = "legislacion_COSINE"
 vectorstore = VectorStoreManager(name=name_vectorstore, path=path)
 llm_manager = LLMManager()
 
@@ -52,9 +53,11 @@ def interact_with_vectorstore(files_to_add: List[str], add_files: bool) -> None:
 
         try:
             context = vectorstore.search_similarity(query=query)
+            console.print("[bold purple]Contexto:[/bold purple]\n")
+            console.print(context)
             respuesta_llm = llm_manager.generate_response_with_context(query, context)
             console.print("[bold purple]Respuesta:[/bold purple]\n")
-            # Simular respuesta en vivo con velocidad constante de 5 caracteres/segundo
+            # Simular respuesta en vivo con velocidad constante de 128 caracteres*s
             respuesta = respuesta_llm
             chars_per_second = 128
             sleep_time = 1 / chars_per_second
@@ -81,7 +84,8 @@ def main() -> None:
     then processes any new files found in the specified path.
     """
     while True:
-        os.system("cls")
+        # limpiar la consola
+        console.clear()
         console.print("[bold green]Hello from rag-legislacion![/bold green]")
         if not vectorstore.exist_vectorstore():
             console.print(
@@ -100,7 +104,10 @@ def main() -> None:
     lista_fuentes = {os.path.basename(fuente) for fuente in vectorstore.list_sources()}
     lista_path = os.listdir(path)
 
-    table = Table(title="Estado de Archivos en el Vectorstore")
+    table = Table(
+        title="Estado de Archivos en el Vectorstore",
+        caption=f"En total hay {len(lista_path)} archivos en el vectorstore '{name_vectorstore}'.",  # noqa: E501
+    )
     table.add_column("Archivo", justify="left")
     table.add_column("Estado", justify="center")
 
@@ -113,17 +120,30 @@ def main() -> None:
             )
             files_to_add.append(os.path.join(path, fuente))
         else:
-            table.add_row(fuente, "[green]Ya está en el vectorstore[/green]")
+            fuente_sin_guion_bajo = os.path.splitext(fuente)[0].replace("_", " ").lower()
+            fuente_sin_guion_bajo = (
+                fuente_sin_guion_bajo[:100] + "..."
+                if len(fuente_sin_guion_bajo) > 100
+                else fuente_sin_guion_bajo
+            )
+            fuente_sin_guion_bajo = fuente_sin_guion_bajo.capitalize()
+            table.add_row(
+                fuente_sin_guion_bajo, "[green]Ya está en el vectorstore[/green]"
+            )
 
     console.print(table)
     interact_with_vectorstore(files_to_add, bool(files_to_add))
 
 
 if __name__ == "__main__":
+    # limpar la ventana de la consola
+    os.system("cls" if os.name == "nt" else "clear")
     if not os.path.exists(path):
         console.print(f"[bold yellow]Carpeta '{path}' no encontrada.[/bold yellow]")
         console.print(
             f"Coloque archivos en '{path}' [bold yellow](*.pdf, *.txt, *.docx, max 100MB)[/bold yellow]"  # noqa: E501
-        )  # noqa: E501
+        )
+        # se crea la carpeta para los archivos
+        os.makedirs(path, exist_ok=True)
         os._exit(0)
     main()

@@ -1,14 +1,14 @@
 [project]
 name = "rag-legislacion"
-version = "0.1.0"
+version = "1.0.0"
 description = "Sistema de Recuperación y Generación Aumentada (RAG) para documentos legislativos. Permite procesar, indexar y consultar documentación legal utilizando modelos de lenguaje y búsqueda semántica."
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
-    { name = "jairo Daniel Mendoza Torres", email = "20b3010069@untels.edu.pe" },
+    { name = "Jairo Daniel Mendoza Torres", email = "20b3010069@untels.edu.pe" },
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 2 - Beta",
     "Intended Audience :: Legal Industry",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3.11",
@@ -51,14 +51,5 @@ target-version = "py311"
 
 # Ordenamiento de imports
 [tool.ruff.isort]
+# Paquetes propios
 known-first-party = ["llm", "vectorstore"]
-
-# Configuración para instalar torch compatible con CUDA 12.4
-# Puedes cambiar la versión de CUDA según tu configuración de hardware o desactivarla si no tienes GPU
-[tool.uv.sources]
-torch = [{ index = "pytorch-cu124", marker = "sys_platform == 'win32'" }]
-
-[[tool.uv.index]]
-name = "pytorch-cu124"
-url = "https://download.pytorch.org/whl/cu124"
-explicit = true

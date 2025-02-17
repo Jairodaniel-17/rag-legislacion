@@ -5,6 +5,7 @@ from zipfile import ZipFile
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
+from langchain_community.vectorstores.faiss import DistanceStrategy
 
 from vectorstore.document_processor import DocumentProcessor
 from vectorstore.embeddings import EmbeddingManager
@@ -75,7 +76,9 @@ class VectorStoreManager:
         )
         texts = text_splitter.split_documents(documents)
         self.vectorstore = FAISS.from_documents(
-            documents=texts, embedding=self.embeddings
+            documents=texts,
+            embedding=self.embeddings,
+            distance_strategy=DistanceStrategy.COSINE,
         )
         base_de_datos_dir = os.path.join("database", self.name)
         self.vectorstore.save_local(folder_path=base_de_datos_dir)

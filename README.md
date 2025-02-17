@@ -9,6 +9,8 @@ Sistema de Recuperación Aumentada por Generación (RAG) para documentos legisla
 - Búsqueda semántica con FAISS
 - Integración con modelos de lenguaje para generación de respuestas
 - Gestión eficiente de bases de datos vectoriales
+- Busqueda de documentos similares y generación de respuestas en base a contexto relevante utilizando el algoritmo de recuperación de documentos (RAG)
+- Busqueda de similitud entre documentos utilizando embeddings
 
 ## Requisitos
 
