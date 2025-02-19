@@ -16,7 +16,7 @@ console = Console()
 
 
 path = "derecho_files"
-name_vectorstore = "legislacion_COSINE"
+name_vectorstore = "legislacion_MAX_INNER_PRODUCT"
 vectorstore = VectorStoreManager(name=name_vectorstore, path=path)
 llm_manager = LLMManager()
 
@@ -53,6 +53,8 @@ def interact_with_vectorstore(files_to_add: List[str], add_files: bool) -> None:
 
         try:
             context = vectorstore.search_similarity(query=query)
+            vectorstore_ = vectorstore.vectorstore.distance_strategy
+            print(vectorstore_)
             console.print("[bold purple]Contexto:[/bold purple]\n")
             console.print(context)
             respuesta_llm = llm_manager.generate_response_with_context(query, context)

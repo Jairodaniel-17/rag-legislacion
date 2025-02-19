@@ -1,145 +1,150 @@
 import os
 import shutil
-from typing import List, Optional
+from typing import Any, List, Optional
 from zipfile import ZipFile
 
+import faiss
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import FAISS
-from langchain_community.vectorstores.faiss import DistanceStrategy
+from langchain_community.docstore.in_memory import InMemoryDocstore
+from langchain_community.vectorstores import FAISS as FAISS_STORE
+from langchain_core.documents import Document
 
+from vectorstore.distance_strategy import DistanceStrategyManager
 from vectorstore.document_processor import DocumentProcessor
 from vectorstore.embeddings import EmbeddingManager
 
 
 class VectorStoreManager:
-    """Clase para gestionar el vectorstore.
-
-    Esta clase maneja la creación, eliminación y búsqueda de documentos similares.
-
-    Métodos:
-    - __init__(path: str, name: str):
-        Inicializa la clase con la ruta del directorio, el nombre del vectorstore
-        y el modelo de embeddings.
-    - create_vectorstore() -> bool:
-        Crea un vectorstore a partir de los documentos en la ruta especificada
-        y lo guarda localmente.
-    - delete_vectorstore() -> bool:
-        Elimina el vectorstore especificado.
-    - search_similarity(query: str, fuente: Optional[str] = None) -> str:
-        Busca documentos similares en el vectorstore basado en una query
-        y una fuente opcional.
-    - list_sources() -> List[str]:
-        Lista todas las fuentes de los documentos en el vectorstore.
-    - extract_texts_by_source(source: str) -> List[str]:
-        Extrae los textos de los documentos que pertenecen a una fuente específica.
-    - save_text_to_file_temp(source: str) -> bool:
-        Guarda los textos de una fuente específica en un archivo temporal.
-    - load_vectorstore() -> FAISS:
-        Carga el vectorstore desde el almacenamiento local.
-    - add_files_vectorstore() -> Optional[FAISS]:
-        Añade nuevos documentos al vectorstore y lo guarda localmente.
-    - download_vectorstore() -> str:
-        Genera un archivo zip del vectorstore y devuelve la ruta del archivo.
-    """
+    """Clase para gestionar los vectorstore de FAISS."""
 
     def __init__(self, path: str, name: str):
-        """Inicializa el gestor del vectorstore.
-
-        Clase para gestionar el vectorstore, incluyendo la creación,
-        eliminación y búsqueda de documentos similares.
-
-        Parámetros:
-        - path: str - ruta del directorio que contiene los documentos (usualmente es
-        "database" que es el directorio donde se almacenan las bases de datos).
-        - name: str - nombre que será el identificador del vectorstore, se
-        usa para guardar y cargar el vectorstore.
-        """
+        """Inicialización de la clase con configuración específica."""
         self.path = path
         self.name = name
         self.embeddings = EmbeddingManager.get_embeddings()
+        self.manager_strategy = DistanceStrategyManager()
+        self.strategy = self.manager_strategy.strategy
         self.vectorstore = None
 
+        # Inicialización del índice FAISS
+        self._initialize_vectorstore()
+
+    def _initialize_vectorstore(self):
+        """Inicializa el vectorstore con configuración básica."""
+        if self.exist_vectorstore():
+            self.vectorstore = self.load_vectorstore()
+        else:
+            # Crear índice base con dimensión correcta
+            dummy_embed = self.embeddings.embed_query(
+                "Propiedad de Jairo Daniel Mendoza Torres"
+            )
+            index = faiss.IndexFlatL2(len(dummy_embed))
+
+            self.vectorstore = FAISS_STORE(
+                embedding_function=self.embeddings,
+                index=index,
+                docstore=InMemoryDocstore(),
+                index_to_docstore_id={},
+                distance_strategy=self.strategy,
+            )
+
     def create_vectorstore(self) -> bool:
-        """Create and save a vector store from documents in the specified path.
+        """Crea y guarda un nuevo vectorstore desde documentos."""
+        if self.exist_vectorstore():
+            return False
 
-        The process includes:
-        - Converting files to text documents
-        - Splitting texts into chunks with overlap
-        - Creating FAISS vector store with embeddings
-        - Saving vector store to local database directory
-
-        Retorna True si el vectorstore fue creado y guardado exitosamente.
-        """
         documents = DocumentProcessor(self.path).files_to_texts()
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000, chunk_overlap=200, length_function=len
         )
         texts = text_splitter.split_documents(documents)
-        self.vectorstore = FAISS.from_documents(
-            documents=texts,
-            embedding=self.embeddings,
-            distance_strategy=DistanceStrategy.COSINE,
-        )
-        base_de_datos_dir = os.path.join("database", self.name)
-        self.vectorstore.save_local(folder_path=base_de_datos_dir)
+
+        # Re-inicializar con documentos
+        self.vectorstore.add_documents(texts)
+        self._save_vectorstore()
         return True
 
     def delete_vectorstore(self) -> bool:
-        """Delete the specified vector store."""
+        """Elimina el vectorstore especificado."""
         try:
             shutil.rmtree(f"database/{self.name}")
+            return True
         except FileNotFoundError:
             return False
-        return True
 
-    def search_similarity(self, query: str, fuente: Optional[str] = None) -> str:
-        """Busqueda de similitd en documentos del vectorstore basado en la query.
-
-        Modo de uso:
-        debe ingresar la query y la fuente (opcional) para buscar documentos
-        similares en el vectorstore.
-
-        Nota: debe estar definido el vectorstore para poder realizar la búsqueda.
-
-        Parámetros:
-        query: str - texto de la query.
-        fuente: str - fuente de los documentos a buscar, pero es opcional.
-
-        Retorna:
-        str - documentos similares.
-        """
+    def search_similarity(
+        self, query: str, k: Optional[int] = 5, fuente: Optional[str] = None
+    ) -> str:
+        """Búsqueda de similitud con capacidad de filtrado."""
         if not self.vectorstore:
             self.vectorstore = self.load_vectorstore()
 
-        if fuente:
-            filtro = {"source": fuente}
-            retriever = self.vectorstore.similarity_search(
-                query=query, k=5, filter=filtro
-            )
-        else:
-            retriever = self.vectorstore.similarity_search(query=query, k=5)
-        busqueda = [
-            {
-                "content": doc.page_content,
-                "source": doc.metadata.get("source", None),
-            }
-            for doc in retriever
-        ]
+        filter_dict = {"source": fuente} if fuente else {}
 
-        return str(busqueda)
+        results = self.vectorstore.similarity_search(query=query, k=k, filter=filter_dict)
+
+        return str(
+            [
+                {"content": doc.page_content, "source": doc.metadata.get("source")}
+                for doc in results
+            ]
+        )
 
     def list_sources(self) -> List[str]:
-        """List all sources of the documents in the vectorstore."""
+        """Lista todas las fuentes únicas en el vectorstore."""
         if not self.vectorstore:
             self.vectorstore = self.load_vectorstore()
 
-        docstore_dict = self.vectorstore.docstore._dict
-        source_metadata = {}
-        for doc_id, document in docstore_dict.items():
-            source = document.metadata.get("source", None)
-            source_metadata[doc_id] = source
+        sources = set()
+        for doc in self.vectorstore.docstore._dict.values():
+            if hasattr(doc, "metadata"):
+                sources.add(doc.metadata.get("source", ""))
+        return list(sources)
 
-        return list(set(source_metadata.values()))
+    def _save_vectorstore(self):
+        """Guarda el vectorstore en disco."""
+        save_path = os.path.join("database", self.name)
+        self.vectorstore.save_local(save_path)
+
+    def load_vectorstore(self) -> FAISS_STORE:
+        """Carga el vectorstore desde disco."""
+        return FAISS_STORE.load_local(
+            folder_path=os.path.join("database", self.name),
+            embeddings=self.embeddings,
+            allow_dangerous_deserialization=True,
+        )
+
+    def add_files_vectorstore(self) -> bool:
+        """Añade nuevos documentos al vectorstore."""
+        temp_folder = "docs"
+        if not os.path.exists(temp_folder):
+            return False
+
+        documents = DocumentProcessor(temp_folder).files_to_texts()
+        if not documents:
+            return False
+
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000, chunk_overlap=200, length_function=len
+        )
+        texts = text_splitter.split_documents(documents)
+
+        self.vectorstore.add_documents(texts)
+        self._save_vectorstore()
+        return True
+
+    def download_vectorstore(self) -> str:
+        """Genera un ZIP del vectorstore."""
+        zip_path = "temp/vectorstore.zip"
+        with ZipFile(zip_path, "w") as zipf:
+            for root, _, files in os.walk(f"database/{self.name}"):
+                for file in files:
+                    zipf.write(os.path.join(root, file))
+        return zip_path
+
+    def exist_vectorstore(self) -> bool:
+        """Verifica si el vectorstore existe."""
+        return os.path.exists(f"database/{self.name}")
 
     def extract_texts_by_source(self, source: str) -> List[str]:
         """Extract texts of documents that belong to a specific source."""
@@ -155,7 +160,7 @@ class VectorStoreManager:
         return texts
 
     def save_text_to_file_temp(self, source: str) -> bool:
-        """Save texts of a specific source to a temporary file."""
+        """Guarda los textos de una fuente en un archivo temporal."""
         texts = self.extract_texts_by_source(source)
         carpeta = "temp"
         target_source_safe = source.replace("\\", "_").replace("/", "_")
@@ -174,16 +179,8 @@ class VectorStoreManager:
         except Exception:
             return False
 
-    def load_vectorstore(self) -> FAISS:
-        """Load the vectorstore from local storage."""
-        return FAISS.load_local(
-            folder_path=os.path.join("database", self.name),
-            embeddings=self.embeddings,
-            allow_dangerous_deserialization=True,
-        )
-
     def add_list_files_vectorstore(self, path_files: str) -> bool:
-        """Add files to the vectorstore and save it locally."""
+        """Añade documentos de una lista de archivos al vectorstore."""
         if not os.path.exists(path_files):
             return False
 
@@ -200,34 +197,21 @@ class VectorStoreManager:
         self.vectorstore.save_local(folder_path=os.path.join("database", self.name))
         return True
 
-    def add_files_vectorstore(self) -> Optional[FAISS]:
-        """Add new documents to the vectorstore and save it locally."""
-        temp_folder = "docs"
-        if not os.path.exists(temp_folder):
-            os.makedirs(temp_folder)
-            return None
+    async def aadd_documents(self, documents: List[Document]) -> None:
+        """Versión asíncrona para añadir documentos al vectorstore."""
+        if not self.vectorstore:
+            self.vectorstore = self.load_vectorstore()
+        await self.vectorstore.aadd_documents(documents=documents)
+        self._save_vectorstore()
 
-        documents = DocumentProcessor(temp_folder).files_to_texts()
-        if not documents:
-            return None
+    async def asimilarity_search_with_score(self, query: str, k: int = 5) -> List[tuple]:
+        """Versión asíncrona de similarity_search_with_score."""
+        if not self.vectorstore:
+            self.vectorstore = self.load_vectorstore()
+        return await self.vectorstore.asimilarity_search_with_score(query=query, k=k)
 
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000, chunk_overlap=200, length_function=len
-        )
-        texts = text_splitter.split_documents(documents)
-        self.vectorstore = self.load_vectorstore()
-        self.vectorstore.add_documents(documents=texts)
-        self.vectorstore.save_local(folder_path=os.path.join("database", self.name))
-        return self.vectorstore
-
-    def download_vectorstore(self):
-        """Generate a zip file of the vectorstore and return the file path."""
-        with ZipFile("temp/vectorstore.zip", "w") as zip:
-            for root, _dirs, files in os.walk(f"database/{self.name}"):
-                for file in files:
-                    zip.write(os.path.join(root, file))
-        return "temp/vectorstore.zip"
-
-    def exist_vectorstore(self) -> bool:
-        """Check if the vectorstore exists in the local storage."""
-        return os.path.exists(f"database/{self.name}")
+    def as_retriever(self, search_type: str = "similarity", **kwargs) -> Any:
+        """Convierte el vectorstore en un retriever para búsquedas avanzadas."""
+        if not self.vectorstore:
+            self.vectorstore = self.load_vectorstore()
+        return self.vectorstore.as_retriever(search_type=search_type, **kwargs)
