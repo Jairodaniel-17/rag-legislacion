@@ -112,6 +112,7 @@ class VectorStoreManager:
             folder_path=os.path.join("database", self.name),
             embeddings=self.embeddings,
             allow_dangerous_deserialization=True,
+            distance_strategy=self.strategy,
         )
 
     def add_files_vectorstore(self) -> bool:

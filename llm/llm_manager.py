@@ -10,7 +10,10 @@ console = Console()
 
 PROMPT_TEMPLATE = ChatPromptTemplate(
     [
-        ("system", "Answer the user's question, using the context provided."),
+        (
+            "system",
+            "Answer the user's question, using the context provided, and at the end mention the source of the context used.",  # noqa: E501
+        ), 
         (
             "user",
             "User query: '{user question}' context to answer user question: '{context}'",
